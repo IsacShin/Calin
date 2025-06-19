@@ -63,7 +63,6 @@ final class MonthVM {
                             day.items.append(contentsOf: copiedItems)
                         }
                     }
-                    
                 } else {
                     // 없으면 새로 생성
                     let newTodoDay = TodoDay(
@@ -74,11 +73,18 @@ final class MonthVM {
                     await SwiftDataManager.shared.insert(newTodoDay)
                 }
             }
-            
         }
 
         let todos = await SwiftDataManager.shared.fetchTodoMonth(forMonthOf: date)
-        return todos
+        
+        // 복사 후 기존 todo의 items가 없다면 리스트에서 삭제
+        for todo in todos {
+            if todo.items.isEmpty {
+                await SwiftDataManager.shared.delete(todo)
+            }
+        }
+
+        return await SwiftDataManager.shared.fetchTodoMonth(forMonthOf: date)
     }
 }
 
@@ -206,6 +212,8 @@ struct MonthV: View {
             if newPath.isEmpty {
                 Task {
                     let todos = await vm.fetchToMonthData(date: vm.selectedDate.value)
+                    vm.todoData = []
+
                     await MainActor.run {
                         vm.todoData = todos
                     }

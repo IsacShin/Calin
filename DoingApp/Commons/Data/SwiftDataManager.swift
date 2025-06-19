@@ -27,8 +27,6 @@ class SwiftDataManager {
     // MARK: - Create
 
     func insert<T: PersistentModel>(_ object: T) async {
-//        context.insert(object)
-//        await save()
         guard let object = object as? TodoDay else {
             print("Object is not of type TodoDay")
             return
