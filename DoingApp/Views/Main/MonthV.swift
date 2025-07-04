@@ -56,34 +56,32 @@ final class MonthVM {
                                 referenceId: item.id
                             )
                         }
-                        let fday = day.items.filter {
-                            $0.referenceId == copiedItems.first?.referenceId
-                        }
-                        if fday.count == 0 {
-                            day.items.append(contentsOf: copiedItems)
-                        }
+                        let existingReferenceIds = Set(day.items.compactMap { $0.referenceId })
+                        let newItems = copiedItems.filter { !existingReferenceIds.contains($0.referenceId ?? UUID()) }
+                        day.items.append(contentsOf: newItems)
                     }
                 } else {
                     // 없으면 새로 생성
+                    let copiedItems = outdatedItems.map { item in
+                        TodoItem(
+                            id: UUID(),
+                            title: item.title,
+                            isCompleted: item.isCompleted,
+                            createdAt: item.createdAt,
+                            referenceId: item.id
+                        )
+                    }
+
                     let newTodoDay = TodoDay(
                         date: today,
                         deviceId: todo.deviceId,
-                        items: outdatedItems
+                        items: copiedItems
                     )
                     await SwiftDataManager.shared.insert(newTodoDay)
                 }
             }
         }
-
-        let todos = await SwiftDataManager.shared.fetchTodoMonth(forMonthOf: date)
         
-        // 복사 후 기존 todo의 items가 없다면 리스트에서 삭제
-        for todo in todos {
-            if todo.items.isEmpty {
-                await SwiftDataManager.shared.delete(todo)
-            }
-        }
-
         return await SwiftDataManager.shared.fetchTodoMonth(forMonthOf: date)
     }
 }
@@ -212,9 +210,8 @@ struct MonthV: View {
             if newPath.isEmpty {
                 Task {
                     let todos = await vm.fetchToMonthData(date: vm.selectedDate.value)
-                    vm.todoData = []
-
                     await MainActor.run {
+                        vm.todoData = []
                         vm.todoData = todos
                     }
                 }

@@ -35,8 +35,10 @@ class SwiftDataManager {
         let existingDays = await fetchTodoDays(forDay: object.date)
         
         if let existingDay = existingDays.first {
-            // 2. 이미 존재하면 items만 병합 (또는 덮어쓰기)
-            existingDay.items = object.items
+            // 2. 중복 제거 후 append 방식으로 병합
+            let existingReferenceIds = Set(existingDay.items.compactMap { $0.referenceId })
+            let newItems = object.items.filter { !existingReferenceIds.contains($0.referenceId ?? UUID()) }
+            existingDay.items.append(contentsOf: newItems)
             await save()
         } else {
             // 3. 없으면 새로 생성 및 저장
