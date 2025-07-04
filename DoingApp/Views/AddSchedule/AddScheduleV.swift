@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Observation
+import WidgetKit
 
 @Observable
 final class AddScheduleVM {
@@ -48,6 +49,7 @@ final class AddScheduleVM {
         await SwiftDataManager.shared.insert(todoDay)
         print("추가된 일정: \(todoDay)")
         alertMessage = "일정이 추가되었습니다."
+        WidgetCenter.shared.reloadTimelines(ofKind: "DoinAppWidget")
     }
     
     func updateTodo(id: UUID) async {

@@ -15,12 +15,32 @@ class SwiftDataManager {
     let modelContainer: ModelContainer
     let context: ModelContext
 
+//    private init() {
+//        do {
+//            modelContainer = try ModelContainer(for: TodoDay.self, TodoItem.self)
+//            context = modelContainer.mainContext
+//        } catch {
+//            fatalError("Failed to initialize SwiftData container: \(error)")
+//        }
+//    }
     private init() {
+        // App Group ID
+        let appGroupID = "group.com.isac.DoingApp"
+        
+        guard let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
+            fatalError("App Group 경로를 찾을 수 없습니다")
+        }
+        
+        let config = ModelConfiguration(
+            "SharedModel",
+            url: sharedURL.appendingPathComponent("SharedModel.sqlite")
+        )
+        
         do {
-            modelContainer = try ModelContainer(for: TodoDay.self, TodoItem.self)
-            context = modelContainer.mainContext
+            self.modelContainer = try ModelContainer(for: TodoDay.self, configurations: config)
+            self.context = modelContainer.mainContext
         } catch {
-            fatalError("Failed to initialize SwiftData container: \(error)")
+            fatalError("SwiftData 초기화 실패: \(error)")
         }
     }
 

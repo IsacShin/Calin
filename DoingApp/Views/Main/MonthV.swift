@@ -206,6 +206,12 @@ struct MonthV: View {
                 }
             }
         }
+        .onAppear {
+            if let url = AppDelegate.launchURL {
+                handleIncomingURL(url)
+                AppDelegate.launchURL = nil
+            }
+        }
         .onChange(of: path) { oldPath, newPath in
             if newPath.isEmpty {
                 Task {
@@ -217,6 +223,20 @@ struct MonthV: View {
                 }
             }
         }
+        .onOpenURL { url in
+            handleIncomingURL(url)
+        }
+    }
+    
+    private func handleIncomingURL(_ url: URL) {
+        guard url.scheme == "todoapp",
+              url.host == "todo",
+              let idString = url.pathComponents.dropFirst().first,
+              let uuid = UUID(uuidString: idString),
+              let target = vm.todoData.first(where: { $0.items.contains(where: { $0.id == uuid }) })
+        else { return }
+
+        path.append(.detail(todoDay: target))
     }
 }
 

@@ -8,6 +8,19 @@
 import SwiftUI
 import Combine
 
+import UIKit
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    static var launchURL: URL?
+
+    func application(_ application: UIApplication,
+                     open url: URL,
+                     options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        AppDelegate.launchURL = url
+        return true
+    }
+}
+
 class AppState: ObservableObject {
     @Published var isShowSplash: Bool = false
 }
@@ -15,7 +28,8 @@ class AppState: ObservableObject {
 @main
 struct DoingAppApp: App {
     @StateObject private var appState = AppState()
-    
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     init() {
         for family in UIFont.familyNames {
             print("Family: \(family)")

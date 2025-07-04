@@ -1,0 +1,124 @@
+//
+//  DoinAppWidget.swift
+//  DoinAppWidget
+//
+//  Created by shinisac on 7/4/25.
+//
+
+import WidgetKit
+import SwiftUI
+import SwiftData
+
+struct Provider: TimelineProvider {
+    func placeholder(in context: Context) -> SimpleEntry {
+        SimpleEntry(date: Date(), todos: nil)
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> Void) {
+        Task {
+            let todos = await SwiftDataManager.shared.fetchTodoDays(forDay: Date()).first
+            let entry = SimpleEntry(date: Date(), todos: todos)
+            completion(entry)
+        }
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> Void) {
+        Task {
+            let todos = await SwiftDataManager.shared.fetchTodoDays(forDay: Date()).first
+
+            let entry = SimpleEntry(date: Date(), todos: todos)
+            let timeline = Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(60 * 30))) // 30분마다 새로고침
+            completion(timeline)
+        }
+    }
+}
+
+struct SimpleEntry: TimelineEntry {
+    let date: Date
+    let todos: TodoDay?
+}
+
+struct DoinAppWidgetEntryView: View {
+    var entry: Provider.Entry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(Date().toYearMonthDayString())
+                .font(.nanumDaHaeng(size: 24))
+                .foregroundStyle(.accent)
+                .bold()
+                        
+            if let todos = entry.todos {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(
+                        Array(todos.items.sorted(by: { $0.createdAt > $1.createdAt }).enumerated()),
+                        id: \.element.id
+                    ) { index, todo in
+//                        HStack(spacing: 8) {
+//                            Image(systemName: todo.isCompleted ? "checkmark.square.fill" : "square")
+//                                .resizable()
+//                                .frame(width: 14, height: 14)
+//                                .foregroundColor(.red)
+//                            Text(todo.title)
+//                                .font(.nanumDaHaeng(size: 18))
+//                                .foregroundStyle(.accent)
+//                            Spacer()
+//                        }
+                        Link(destination: URL(string: "todoapp://todo/\(todo.id)")!) {
+                            HStack(spacing: 8) {
+                                Image(systemName: todo.isCompleted ? "checkmark.square.fill" : "square")
+                                    .resizable()
+                                    .frame(width: 14, height: 14)
+                                    .foregroundColor(.red)
+                                Text(todo.title)
+                                    .font(.nanumDaHaeng(size: 18))
+                                    .foregroundStyle(.accent)
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+
+            } else {
+                Text("등록된 할 일이 없습니다.")
+                    .font(.nanumDaHaeng(size: 18))
+                    .multilineTextAlignment(.center)
+                    .font(.subheadline)
+                    .foregroundStyle(.accent)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+            }
+
+            Spacer()
+        }
+        .padding(.init(top: 4, leading: 10, bottom: 10, trailing: 10))
+
+        .widgetURL(URL(string: "todoapp://today")) // 눌렀을 때 딥링크
+    }
+}
+
+struct DoinAppWidget: Widget {
+    let kind: String = "DoinAppWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+            if #available(iOS 17.0, *) {
+                DoinAppWidgetEntryView(entry: entry)
+                    .containerBackground(Color(red: 250/255, green: 237/255, blue: 125/255), for: .widget)
+            } else {
+                DoinAppWidgetEntryView(entry: entry)
+                    .padding()
+                    .containerBackground(Color(red: 250/255, green: 237/255, blue: 125/255), for: .widget)
+            }
+        }
+        .configurationDisplayName("Calin")
+        .description("오늘 등록된 할 일을 간단히 보여줍니다.")
+        .supportedFamilies([.systemSmall, .systemMedium]) // 원하는 사이즈
+    }
+}
+
+#Preview(as: .systemSmall) {
+    DoinAppWidget()
+} timeline: {
+    SimpleEntry(date: .now, todos: nil)
+}
