@@ -47,7 +47,6 @@ final class AddScheduleVM {
         let todoDay = TodoDay(date: selectedDate, deviceId: deviceId, items: todoList.sorted(by: { $0.createdAt > $1.createdAt }))
 
         await SwiftDataManager.shared.insert(todoDay)
-        print("추가된 일정: \(todoDay)")
         alertMessage = "일정이 추가되었습니다."
     }
     

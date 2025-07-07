@@ -25,7 +25,6 @@ final class MonthVM {
         selectedDate
             .sink { date in
                 Task {
-                    print(date.toYearMonthString())
                     self.todoData = await self.fetchToMonthData(date: date)
                 }
             }

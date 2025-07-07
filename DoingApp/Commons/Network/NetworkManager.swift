@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 final class NetworkManager {
     static let shared = NetworkManager()
     private init() {}
@@ -65,9 +63,9 @@ final class NetworkManager {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         // 🔍 Logging Request
-        print("📤 [\(method)] \(url.absoluteString)")
+        print("[\(method)] \(url.absoluteString)")
         if let body = body {
-            print("📦 Request Body: \(String(data: body, encoding: .utf8) ?? "-")")
+            print("Request Body: \(String(data: body, encoding: .utf8) ?? "-")")
         }
 
         do {
@@ -78,8 +76,8 @@ final class NetworkManager {
             }
 
             // 🔍 Logging Response
-            print("📥 Status Code: \(httpResponse.statusCode)")
-            print("📥 Response Body: \(String(data: data, encoding: .utf8) ?? "-")")
+            print("Status Code: \(httpResponse.statusCode)")
+            print("Response Body: \(String(data: data, encoding: .utf8) ?? "-")")
 
             guard 200..<300 ~= httpResponse.statusCode else {
                 throw APIError.serverError(statusCode: httpResponse.statusCode)
@@ -94,7 +92,7 @@ final class NetworkManager {
 
         } catch {
             // 🔍 Logging Error
-            print("❌ Network Error: \(error.localizedDescription)")
+            print("Network Error: \(error.localizedDescription)")
             throw error as? APIError ?? APIError.custom(message: error.localizedDescription)
         }
     }
