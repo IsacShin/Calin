@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import WidgetKit
 
 @MainActor
 class SwiftDataManager {
@@ -15,14 +16,6 @@ class SwiftDataManager {
     let modelContainer: ModelContainer
     let context: ModelContext
 
-//    private init() {
-//        do {
-//            modelContainer = try ModelContainer(for: TodoDay.self, TodoItem.self)
-//            context = modelContainer.mainContext
-//        } catch {
-//            fatalError("Failed to initialize SwiftData container: \(error)")
-//        }
-//    }
     private init() {
         // App Group ID
         let appGroupID = "group.com.isac.DoingApp"
@@ -129,6 +122,7 @@ class SwiftDataManager {
     func save() async {
         do {
             try context.save()
+            WidgetCenter.shared.reloadTimelines(ofKind: "DoinAppWidget")
         } catch {
             print("Failed to save context: \(error)")
         }

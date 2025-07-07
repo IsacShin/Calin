@@ -40,11 +40,28 @@ struct SimpleEntry: TimelineEntry {
 
 struct DoinAppWidgetEntryView: View {
     var entry: Provider.Entry
+    @Environment(\.widgetFamily) var family
 
     var body: some View {
+        switch family {
+        case .systemSmall:
+            getWidgetView(for: .systemSmall)
+        case .systemMedium:
+            getWidgetView(for: .systemMedium)
+        case .systemLarge:
+            getWidgetView(for: .systemLarge)
+        default:
+            Text("지원하지 않는 위젯 크기입니다.")
+                .font(.nanumDaHaeng(size: 18))
+                .foregroundStyle(.accent)
+                .padding()
+        }
+    }
+    
+    func getWidgetView(for size: WidgetFamily) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(Date().toYearMonthDayString())
-                .font(.nanumDaHaeng(size: 24))
+                .font(.nanumDaHaeng(size: size == .systemSmall ? 20 : 24))
                 .foregroundStyle(.accent)
                 .bold()
                         
@@ -54,24 +71,14 @@ struct DoinAppWidgetEntryView: View {
                         Array(todos.items.sorted(by: { $0.createdAt > $1.createdAt }).enumerated()),
                         id: \.element.id
                     ) { index, todo in
-//                        HStack(spacing: 8) {
-//                            Image(systemName: todo.isCompleted ? "checkmark.square.fill" : "square")
-//                                .resizable()
-//                                .frame(width: 14, height: 14)
-//                                .foregroundColor(.red)
-//                            Text(todo.title)
-//                                .font(.nanumDaHaeng(size: 18))
-//                                .foregroundStyle(.accent)
-//                            Spacer()
-//                        }
                         Link(destination: URL(string: "todoapp://todo/\(todo.id)")!) {
                             HStack(spacing: 8) {
                                 Image(systemName: todo.isCompleted ? "checkmark.square.fill" : "square")
                                     .resizable()
-                                    .frame(width: 14, height: 14)
+                                    .frame(width: size == .systemSmall ? 12 : 14, height: size == .systemSmall ? 12 : 14)
                                     .foregroundColor(.red)
                                 Text(todo.title)
-                                    .font(.nanumDaHaeng(size: 18))
+                                    .font(.nanumDaHaeng(size: size == .systemSmall ? 14 : 18))
                                     .foregroundStyle(.accent)
                                 Spacer()
                             }
@@ -81,8 +88,9 @@ struct DoinAppWidgetEntryView: View {
 
             } else {
                 Text("등록된 할 일이 없습니다.")
-                    .font(.nanumDaHaeng(size: 18))
+                    .font(.nanumDaHaeng(size: size == .systemSmall ? 14 : 18))
                     .multilineTextAlignment(.center)
+                    .lineLimit(0)
                     .font(.subheadline)
                     .foregroundStyle(.accent)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -92,7 +100,6 @@ struct DoinAppWidgetEntryView: View {
             Spacer()
         }
         .padding(.init(top: 4, leading: 10, bottom: 10, trailing: 10))
-
         .widgetURL(URL(string: "todoapp://today")) // 눌렀을 때 딥링크
     }
 }
@@ -113,7 +120,7 @@ struct DoinAppWidget: Widget {
         }
         .configurationDisplayName("Calin")
         .description("오늘 등록된 할 일을 간단히 보여줍니다.")
-        .supportedFamilies([.systemSmall, .systemMedium]) // 원하는 사이즈
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge]) // 원하는 사이즈
     }
 }
 

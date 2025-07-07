@@ -57,7 +57,10 @@ final class MonthVM {
                             )
                         }
                         let existingReferenceIds = Set(day.items.compactMap { $0.referenceId })
-                        let newItems = copiedItems.filter { !existingReferenceIds.contains($0.referenceId ?? UUID()) }
+                        let newItems = copiedItems
+                            .filter { !existingReferenceIds.contains($0.referenceId ?? UUID()) }
+                            .sorted { $0.createdAt < $1.createdAt }
+
                         day.items.append(contentsOf: newItems)
                     }
                 } else {
@@ -232,11 +235,21 @@ struct MonthV: View {
         guard url.scheme == "todoapp",
               url.host == "todo",
               let idString = url.pathComponents.dropFirst().first,
-              let uuid = UUID(uuidString: idString),
-              let target = vm.todoData.first(where: { $0.items.contains(where: { $0.id == uuid }) })
+              let uuid = UUID(uuidString: idString)
         else { return }
 
-        path.append(.detail(todoDay: target))
+        Task {
+            let todos = await vm.fetchToMonthData(date: vm.selectedDate.value)
+            if let target = todos.first(where: { $0.items.contains(where: { $0.id == uuid }) }) {
+                await MainActor.run {
+                    vm.todoData = []
+                    vm.todoData = todos
+                    if !path.contains(.detail(todoDay: target)) { // 해당 화면이 없을 경우에만 진입
+                        path.append(.detail(todoDay: target))
+                    }
+                }
+            }
+        }
     }
 }
 

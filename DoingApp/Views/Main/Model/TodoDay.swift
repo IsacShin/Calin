@@ -29,7 +29,7 @@ class TodoItem {
     var title: String                        // 할일
     var isCompleted: Bool                    // 완료 여부
     var createdAt: Date                      // 생성 날짜
-    var referenceId: UUID? = nil
+    var referenceId: UUID? = nil             // 참조 ID (기존 미완료 일정 아이템의 ID를 참조)
 
     init(id: UUID = UUID(), title: String, isCompleted: Bool = false, createdAt: Date, referenceId: UUID? = nil) {
         self.id = id
