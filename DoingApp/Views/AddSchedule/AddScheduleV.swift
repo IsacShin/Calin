@@ -44,7 +44,7 @@ final class AddScheduleVM {
         }
 
         let deviceId = Define.Device.uuid
-        let todoDay = TodoDay(date: selectedDate, deviceId: deviceId, items: todoList)
+        let todoDay = TodoDay(date: selectedDate, deviceId: deviceId, items: todoList.sorted(by: { $0.createdAt > $1.createdAt }))
 
         await SwiftDataManager.shared.insert(todoDay)
         print("추가된 일정: \(todoDay)")
@@ -65,7 +65,7 @@ final class AddScheduleVM {
         }
 
         await SwiftDataManager.shared.update(id: id) { (todoDay: TodoDay) in
-            todoDay.items = todoList
+            todoDay.items = todoList.sorted(by: { $0.createdAt > $1.createdAt })
             todoDay.date = selectedDate
         }
         self.todoDay = await self.fetchTodo(id: id)

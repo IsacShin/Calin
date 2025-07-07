@@ -45,11 +45,11 @@ struct DoinAppWidgetEntryView: View {
     var body: some View {
         switch family {
         case .systemSmall:
-            getWidgetView(for: .systemSmall)
+            getWidgetView(for: .systemSmall, showCount: 3)
         case .systemMedium:
-            getWidgetView(for: .systemMedium)
+            getMediumWidgetView(showCount: 5)
         case .systemLarge:
-            getWidgetView(for: .systemLarge)
+            getWidgetView(for: .systemLarge, showCount: 12)
         default:
             Text("지원하지 않는 위젯 크기입니다.")
                 .font(.nanumDaHaeng(size: 18))
@@ -58,17 +58,82 @@ struct DoinAppWidgetEntryView: View {
         }
     }
     
-    func getWidgetView(for size: WidgetFamily) -> some View {
+    func getMediumWidgetView(showCount: Int = 3) -> some View {
+        HStack {
+            VStack {
+                Text(Date().toYearMonthDayString())
+                    .font(.nanumDaHaeng(size: 24))
+                    .foregroundStyle(.accent)
+                    .bold()
+                Text("[\(String(describing: entry.todos?.items.filter { !$0.isCompleted }.count ?? 0))/\(entry.todos?.items.count ?? 0)]")
+                    .font(.nanumDaHaeng(size: 24))
+            }
+            
+            Divider()
+                .frame(height: 24)
+                .background(Color.accentColor)
+            
+            if let todos = entry.todos {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(
+                        Array(todos.items.prefix(showCount).sorted(by: { $0.createdAt > $1.createdAt }).enumerated()),
+                        id: \.element.id
+                    ) { index, todo in
+                        Link(destination: URL(string: "todoapp://todo/\(todo.id)")!) {
+                            HStack(spacing: 8) {
+                                Image(systemName: todo.isCompleted ? "checkmark.square.fill" : "square")
+                                    .resizable()
+                                    .frame(width: 14, height: 14)
+                                    .foregroundColor(.red)
+                                Text(todo.title)
+                                    .font(.nanumDaHaeng(size: 18))
+                                    .foregroundStyle(.accent)
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+
+            } else {
+                Text("등록된 할 일이 없습니다.")
+                    .font(.nanumDaHaeng(size: 18))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .font(.subheadline)
+                    .foregroundStyle(.accent)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+            }
+        }
+        .padding(.init(top: 4, leading: 10, bottom: 10, trailing: 10))
+        .widgetURL(URL(string: "todoapp://today")) // 눌렀을 때 딥링크
+    }
+    
+    func getWidgetView(for size: WidgetFamily, showCount: Int = 3) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(Date().toYearMonthDayString())
-                .font(.nanumDaHaeng(size: size == .systemSmall ? 20 : 24))
-                .foregroundStyle(.accent)
-                .bold()
+            if size == .systemLarge {
+                HStack {
+                    Text(Date().toYearMonthDayString())
+                        .font(.nanumDaHaeng(size: size == .systemSmall ? 20 : 24))
+                        .foregroundStyle(.accent)
+                        .bold()
+                    Text("[\(String(describing: entry.todos?.items.filter { !$0.isCompleted }.count ?? 0))/\(entry.todos?.items.count ?? 0)]")
+                        .font(.nanumDaHaeng(size: size == .systemSmall ? 20 : 24))
+                    Spacer()
+                }
+            } else {
+                Text(Date().toYearMonthDayString())
+                    .font(.nanumDaHaeng(size: size == .systemSmall ? 20 : 24))
+                    .foregroundStyle(.accent)
+                    .bold()
+                Text("[\(String(describing: entry.todos?.items.filter { !$0.isCompleted }.count ?? 0))/\(entry.todos?.items.count ?? 0)]")
+                    .font(.nanumDaHaeng(size: size == .systemSmall ? 20 : 24))
+            }
                         
             if let todos = entry.todos {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(
-                        Array(todos.items.sorted(by: { $0.createdAt > $1.createdAt }).enumerated()),
+                        Array(todos.items.prefix(showCount).sorted(by: { $0.createdAt > $1.createdAt }).enumerated()),
                         id: \.element.id
                     ) { index, todo in
                         Link(destination: URL(string: "todoapp://todo/\(todo.id)")!) {
@@ -90,7 +155,7 @@ struct DoinAppWidgetEntryView: View {
                 Text("등록된 할 일이 없습니다.")
                     .font(.nanumDaHaeng(size: size == .systemSmall ? 14 : 18))
                     .multilineTextAlignment(.center)
-                    .lineLimit(0)
+                    .lineLimit(2)
                     .font(.subheadline)
                     .foregroundStyle(.accent)
                     .frame(maxWidth: .infinity, alignment: .center)
