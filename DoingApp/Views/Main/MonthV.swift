@@ -55,7 +55,8 @@ final class MonthVM {
                                 referenceId: item.id
                             )
                         }
-                        let existingReferenceIds = Set(day.items.compactMap { $0.referenceId })
+                        // 미완료 일정 중복제거
+                        let existingReferenceIds = Set(originalTodos.flatMap { $0.items }.compactMap { $0.referenceId })
                         let newItems = copiedItems
                             .filter { !existingReferenceIds.contains($0.referenceId ?? UUID()) }
                             .sorted { $0.createdAt < $1.createdAt }
@@ -73,11 +74,17 @@ final class MonthVM {
                             referenceId: item.id
                         )
                     }
+                    
+                    // 미완료 일정 중복제거
+                    let existingReferenceIds = Set(originalTodos.flatMap { $0.items }.compactMap { $0.referenceId })
+                    let newItems = copiedItems
+                        .filter { !existingReferenceIds.contains($0.referenceId ?? UUID()) }
+                        .sorted { $0.createdAt < $1.createdAt }
 
                     let newTodoDay = TodoDay(
                         date: today,
                         deviceId: todo.deviceId,
-                        items: copiedItems
+                        items: newItems
                     )
                     await SwiftDataManager.shared.insert(newTodoDay)
                 }
